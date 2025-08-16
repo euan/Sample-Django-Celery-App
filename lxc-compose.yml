@@ -1,9 +1,5 @@
 # LXC Compose Configuration for Django+Celery Sample Application
-# This configuration creates two containers:
-# 1. sample-datastore: PostgreSQL + Redis
-# 2. sample-django-app: Django application with Celery workers
-#
-# Usage: lxc-compose up -f lxc-compose.yml
+# Simplified syntax with integrated port forwards and dependencies
 
 version: '1.0'
 
@@ -11,7 +7,7 @@ containers:
   sample-datastore:
     template: ubuntu
     release: jammy
-    # IP auto-assigned starting from .11
+    
     aliases:
       - datastore
       - postgres
@@ -46,14 +42,23 @@ containers:
   sample-django-app:
     template: ubuntu
     release: jammy
-    # IP auto-assigned
+    
     aliases:
       - app
       - web
       - django
     
+    # Simple list of dependencies
+    depends_on:
+      - sample-datastore
+    
     mounts:
       - .:/app  # Mount current directory to /app in container
+    
+    # Port forwarding with optional descriptions
+    ports:
+      - 8080:80    # Nginx
+      - 8000:8000  # Django dev server
     
     packages:
       - python3
@@ -153,29 +158,6 @@ containers:
           mkdir -p /var/log/django /var/log/celery /run/django
           mkdir -p /app/static /app/media
       
-      - name: "Create database user and database if they don't exist"
-        command: |
-          # Wait for PostgreSQL to be ready
-          until pg_isready -h localhost -p 5432; do
-            echo "Waiting for PostgreSQL..."
-            sleep 2
-          done
-          
-          # Create user if it doesn't exist
-          sudo -u postgres psql -tc "SELECT 1 FROM pg_user WHERE usename = '${DB_USER}'" | grep -q 1 || {
-            echo "Creating user ${DB_USER}..."
-            sudo -u postgres createuser -d -r -s "${DB_USER}"
-            sudo -u postgres psql -c "ALTER USER \"${DB_USER}\" PASSWORD '${DB_PASSWORD}';"
-          }
-          
-          # Create database if it doesn't exist
-          sudo -u postgres psql -lqt | cut -d \| -f 1 | grep -qw "${DB_NAME}" || {
-            echo "Creating database ${DB_NAME}..."
-            sudo -u postgres createdb -O "${DB_USER}" "${DB_NAME}"
-          }
-          
-          echo "Database setup completed."
-      
       - name: "Run migrations"
         command: |
           cd /app/src
@@ -197,36 +179,3 @@ containers:
           chown -R www-data:www-data /app
           chmod -R 755 /app
           chmod -R 775 /app/media /app/static /var/log/django /var/log/celery
-
-# Port forwarding configuration
-port_forwards:
-  - host_port: 8080
-    container: sample-django-app
-    container_port: 80
-    protocol: tcp
-    description: "Django application (Nginx)"
-  
-  - host_port: 8000
-    container: sample-django-app
-    container_port: 8000
-    protocol: tcp
-    description: "Django development server"
-  
-  - host_port: 5432
-    container: sample-datastore
-    container_port: 5432
-    protocol: tcp
-    description: "PostgreSQL database"
-  
-  - host_port: 6379
-    container: sample-datastore
-    container_port: 6379
-    protocol: tcp
-    description: "Redis cache"
-
-# Dependencies
-dependencies:
-  sample-django-app:
-    depends_on:
-      - sample-datastore
-    start_delay: 10  # Wait 10 seconds after datastore starts
