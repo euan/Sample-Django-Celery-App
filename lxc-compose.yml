@@ -9,15 +9,13 @@ version: '1.0'
 
 containers:
   sample-datastore:
-    container:
-      name: sample-datastore
-      template: ubuntu
-      release: jammy
-      # IP auto-assigned starting from .11
+    template: ubuntu
+    release: jammy
+    # IP auto-assigned starting from .11
     aliases:
       - datastore
       - postgres
-      - postgresql 
+      - postgresql
       - db
       - database
       - redis
@@ -46,22 +44,16 @@ containers:
           systemctl restart redis-server
 
   sample-django-app:
-    container:
-      name: sample-django-app
-      template: ubuntu
-      release: jammy
-      # IP auto-assigned
+    template: ubuntu
+    release: jammy
+    # IP auto-assigned
     aliases:
       - app
       - web
       - django
     
     mounts:
-      # Mount application code from host - uses current directory
-      - host: .
-        container: /app
-        type: bind
-        create: true
+      - .:/app  # Mount current directory to /app in container
     
     packages:
       - python3
@@ -81,9 +73,9 @@ containers:
       DB_NAME: djangosample
       DB_USER: djangouser
       DB_PASSWORD: djangopass123
-      DB_HOST: datastore  # Using hostname instead of IP
+      DB_HOST: datastore  # Using alias instead of full container name
       DB_PORT: "5432"
-      REDIS_HOST: datastore  # Using hostname instead of IP
+      REDIS_HOST: datastore  # Using alias instead of full container name
       REDIS_PORT: "6379"
       CELERY_BROKER_URL: redis://datastore:6379/0
       CELERY_RESULT_BACKEND: redis://datastore:6379/0
