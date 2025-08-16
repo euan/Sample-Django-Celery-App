@@ -50,6 +50,14 @@ This application is deployed automatically by the LXC Compose wizard. The deploy
 5. Sets up Supervisor to manage processes
 6. Configures Nginx as a reverse proxy
 
+## Admin Access
+
+The application includes a Django admin user created automatically during deployment:
+
+- **Username**: `admin`
+- **Password**: `admin123`
+- **Admin URL**: `http://your-server:8000/admin/`
+
 ## API Endpoints
 
 - `GET /` - Main web interface

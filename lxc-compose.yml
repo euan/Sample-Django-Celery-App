@@ -32,6 +32,16 @@ containers:
           sed -i 's/bind 127.0.0.1 ::1/bind 0.0.0.0/g' /etc/redis/redis.conf
           sed -i 's/protected-mode yes/protected-mode no/g' /etc/redis/redis.conf
           systemctl restart redis-server
+    
+    post_install:
+      - name: "Setup PostgreSQL database"
+        command: |
+          sudo -u postgres psql <<EOF
+          CREATE DATABASE djangosample;
+          CREATE USER djangouser WITH PASSWORD 'djangopass123';
+          GRANT ALL PRIVILEGES ON DATABASE djangosample TO djangouser;
+          \q
+          EOF
 
   sample-django-app:
     template: ubuntu
@@ -64,6 +74,7 @@ containers:
     
     environment:
       DEBUG: "True"
+      DJANGO_SECRET_KEY: "your-secret-key-here-change-in-production"
       DB_NAME: djangosample
       DB_USER: djangouser
       DB_PASSWORD: djangopass123
@@ -161,7 +172,8 @@ containers:
           cd /app/src
           source ../venv/bin/activate
           export DJANGO_SETTINGS_MODULE=config.settings
-          echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('admin', 'admin@example.com', 'admin123') if not User.objects.filter(username='admin').exists() else None" | python manage.py shell
+          python manage.py createsuperuser --noinput --username admin --email admin@example.com || true
+          echo "from django.contrib.auth import get_user_model; User = get_user_model(); u = User.objects.get(username='admin'); u.set_password('admin123'); u.save()" | python manage.py shell
       
       - name: "Set permissions"
         command: |
