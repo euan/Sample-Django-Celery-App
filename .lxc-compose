@@ -1,0 +1,22 @@
+# LXC Compose Project Settings
+# This file configures how LXC Compose handles this project
+
+# Project name (used for container prefixes if needed)
+project_name: sample-django-app
+
+# Network configuration
+network:
+  bridge: lxcbr0
+  subnet: 10.0.3.0/24
+
+# Default container settings
+defaults:
+  template: ubuntu
+  release: jammy
+
+# Volume settings
+volumes:
+  # Application data that should persist
+  - /srv/apps/sample-django-app/media
+  - /srv/apps/sample-django-app/static
+  - /srv/apps/sample-django-app/logs
