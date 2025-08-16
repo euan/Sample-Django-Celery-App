@@ -189,6 +189,18 @@ containers:
           cd /app/src
           source ../venv/bin/activate
           export DJANGO_SETTINGS_MODULE=config.settings
+          export DEBUG=True
+          export DJANGO_SECRET_KEY="your-secret-key-here-change-in-production"
+          export DB_NAME=djangosample
+          export DB_USER=djangouser
+          export DB_PASSWORD=djangopass123
+          export DB_HOST=sample-datastore
+          export DB_PORT=5432
+          export REDIS_HOST=sample-datastore
+          export REDIS_PORT=6379
+          export CELERY_BROKER_URL="redis://sample-datastore:6379/0"
+          export CELERY_RESULT_BACKEND="redis://sample-datastore:6379/0"
+          export ALLOWED_HOSTS="*"
           python manage.py makemigrations api tasks
           python manage.py migrate
           python manage.py collectstatic --noinput
@@ -198,6 +210,18 @@ containers:
           cd /app/src
           source ../venv/bin/activate
           export DJANGO_SETTINGS_MODULE=config.settings
+          export DEBUG=True
+          export DJANGO_SECRET_KEY="your-secret-key-here-change-in-production"
+          export DB_NAME=djangosample
+          export DB_USER=djangouser
+          export DB_PASSWORD=djangopass123
+          export DB_HOST=sample-datastore
+          export DB_PORT=5432
+          export REDIS_HOST=sample-datastore
+          export REDIS_PORT=6379
+          export CELERY_BROKER_URL="redis://sample-datastore:6379/0"
+          export CELERY_RESULT_BACKEND="redis://sample-datastore:6379/0"
+          export ALLOWED_HOSTS="*"
           python manage.py createsuperuser --noinput --username admin --email admin@example.com || true
           echo "from django.contrib.auth import get_user_model; User = get_user_model(); u = User.objects.get(username='admin'); u.set_password('admin123'); u.save()" | python manage.py shell
       
@@ -206,3 +230,7 @@ containers:
           chown -R www-data:www-data /app
           chmod -R 755 /app
           chmod -R 775 /app/media /app/static /var/log/django /var/log/celery
+      
+      - name: "Restart supervisor services"
+        command: |
+          supervisorctl restart all || true
