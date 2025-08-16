@@ -1,5 +1,8 @@
 # LXC Compose Configuration for Django+Celery Sample Application
 # Simplified syntax with integrated port forwards and dependencies
+# 
+# IMPORTANT: Container names must be globally unique across the system.
+# Use project namespaces to avoid conflicts (e.g., myapp-db, myapp-cache)
 
 version: '1.0'
 
@@ -7,15 +10,6 @@ containers:
   sample-datastore:
     template: ubuntu
     release: jammy
-    
-    aliases:
-      - datastore
-      - postgres
-      - postgresql
-      - db
-      - database
-      - redis
-      - cache
     
     packages:
       - postgresql
@@ -42,11 +36,6 @@ containers:
   sample-django-app:
     template: ubuntu
     release: jammy
-    
-    aliases:
-      - app
-      - web
-      - django
     
     # Simple list of dependencies
     depends_on:
@@ -78,12 +67,12 @@ containers:
       DB_NAME: djangosample
       DB_USER: djangouser
       DB_PASSWORD: djangopass123
-      DB_HOST: datastore  # Using alias instead of full container name
+      DB_HOST: sample-datastore  # Using exact container name
       DB_PORT: "5432"
-      REDIS_HOST: datastore  # Using alias instead of full container name
+      REDIS_HOST: sample-datastore  # Using exact container name
       REDIS_PORT: "6379"
-      CELERY_BROKER_URL: redis://datastore:6379/0
-      CELERY_RESULT_BACKEND: redis://datastore:6379/0
+      CELERY_BROKER_URL: redis://sample-datastore:6379/0
+      CELERY_RESULT_BACKEND: redis://sample-datastore:6379/0
       ALLOWED_HOSTS: "*"
     
     services:
